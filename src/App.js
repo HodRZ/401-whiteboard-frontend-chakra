@@ -2,36 +2,37 @@ import React from 'react';
 import {
   ChakraProvider,
   Box,
-  Text,
-  Link,
+  Spinner,
   VStack,
-  Code,
   Grid,
   theme,
 } from '@chakra-ui/react';
 import { ColorModeSwitcher } from './ColorModeSwitcher';
-import { Logo } from './Logo';
+import Hero from './components/main/Hero';
+import Sidebar from './components/main/Sidebar';
+import Post from './components/post/Post';
+import Auth from './components/user/Auth';
+import { AppDataProvider } from './State/PostsContext';
+import { useAuth } from './State/AuthContext';
 
 function App() {
+  const { userState, loading } = useAuth();
   return (
     <ChakraProvider theme={theme}>
       <Box textAlign="center" fontSize="xl">
         <Grid minH="100vh" p={3}>
           <ColorModeSwitcher justifySelf="flex-end" />
           <VStack spacing={8}>
-            <Logo h="40vmin" pointerEvents="none" />
-            <Text>
-              Edit <Code fontSize="xl">src/App.js</Code> and save to reload.
-            </Text>
-            <Link
-              color="teal.500"
-              href="https://chakra-ui.com"
-              fontSize="2xl"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Learn Chakra
-            </Link>
+            <Sidebar />
+            <Hero />
+            <AppDataProvider>
+              {(loading) ?
+                <Spinner /> :
+                ((userState.isLoggedIn && userState.loggedUser) ?
+                  <Post /> :
+                  <Auth />)
+              }
+            </AppDataProvider>
           </VStack>
         </Grid>
       </Box>
