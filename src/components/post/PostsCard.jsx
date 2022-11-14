@@ -1,202 +1,165 @@
-import { Box, Flex, Image, Link, chakra } from "@chakra-ui/react";
+import { Grid, GridItem } from '@chakra-ui/react';
+
+import axios from './../../api/axios';
+import React, { useEffect, useState } from 'react';
+import { AiFillDelete, AiFillEdit } from 'react-icons/ai';
+import EditPost from './EditPost';
+import { usePosts } from '../../State/PostsContext';
+import { actions } from '../../State/PostsReducer';
+import { useAuth } from '../../State/AuthContext';
 
 
-export default function PostsCard() {
+export default function PostsCard(props) {
+    const { dispatch } = usePosts();
+    const { userState, isAuthorized } = useAuth();
+    const { loggedUser } = userState;
+
+    const [post, setPost] = useState(props.post);
+    const [showEdit, setShowEdit] = useState(false);
+
+    const getPost = async () => {
+        const id = props.post.id;
+        const updatedPost = await axios.get(`/post/${id}`, {
+            headers: {
+                Authorization: `Bearer ${loggedUser.access_token}`
+            }
+        });
+        setPost(updatedPost.data);
+    };
+
+    const addComment = async (e) => {
+        e.preventDefault();
+        const id = e.target.id;
+        const newCmnt = {
+            content: e.target.comment.value,
+            UserId: loggedUser.id
+        };
+        await axios.post(`/post/${id}/comment`, newCmnt, {
+            headers: {
+                Authorization: `Bearer ${loggedUser.access_token}`
+            }
+        });
+        e.target.comment.value = '';
+        getPost();
+    };
+    const editPost = async (e) => {
+        e.preventDefault();
+        const data = {
+            content: e.target.content.value,
+            title: e.target.title.value
+        };
+        await axios.put(`/post/${e.target.id}`, data, {
+            headers: {
+                Authorization: `Bearer ${loggedUser.access_token}`
+            }
+        })
+            .then(res => {
+                e.target.content.value = '';
+                e.target.title.value = '';
+            })
+            .catch(e => alert(e.response.data));
+        setShowEdit(false);
+        getPost();
+    };
+
+    const deleteComment = async (e) => {
+        e.preventDefault();
+        const id = e.target.id;
+        await axios.delete(`/comment/${id}`, {
+            headers: {
+                Authorization: `Bearer ${loggedUser.access_token}`
+            }
+        });
+        getPost();
+    };
+
+
+    const deletePost = async (e) => {
+        e.preventDefault();
+        const id = e.target.id;
+        await axios.delete(`/post/${id}`, {
+            headers: {
+                Authorization: `Bearer ${loggedUser.access_token}`
+            }
+        });
+        dispatch({
+            type: actions.deletePost,
+            payload: parseInt(id)
+        });
+    };
+    useEffect(() => {
+        getPost();
+    }, []);
+
     return (
-        <Flex
-            bg="#edf3f8"
-            _dark={{ bg: "#3e3e3e" }}
-            p={50}
-            w="full"
-            alignItems="center"
-            justifyContent="center"
-        >
-            <Box
-                mx="auto"
-                px={8}
-                py={4}
-                rounded="lg"
-                shadow="lg"
-                bg="white"
-                _dark={{ bg: "gray.800" }}
-                maxW="2xl"
+        <>
+            {showEdit &&
+                <EditPost post={post} setShowEdit={setShowEdit} editPost={editPost} />
+            }
+            <Grid
+                key={post?.id}
+                templateAreas={`"name header delete"
+                  "nav main main"
+                  "nav comments comments"`}
+                gridTemplateRows={'50px 1fr 4fr'}
+                gridTemplateColumns={'150px 1fr 20px'}
+                h='100%'
+                gap='1'
+                color='blackAlpha.700'
+                fontWeight='bold'
             >
-                <Flex justifyContent="space-between" alignItems="center">
-                    <chakra.span
-                        fontSize="sm"
-                        color="gray.600"
-                        _dark={{ color: "gray.400" }}
-                    >
-                        Mar 10, 2019
-                    </chakra.span>
-                    <Link
-                        px={3}
-                        py={1}
-                        bg="gray.600"
-                        color="gray.100"
-                        fontSize="sm"
-                        fontWeight="700"
-                        rounded="md"
-                        _hover={{ bg: "gray.500" }}
-                    >
-                        Design
-                    </Link>
-                </Flex>
-
-                <Box mt={2}>
-                    <Link
-                        fontSize="2xl"
-                        color="gray.700"
-                        _dark={{ color: "white" }}
-                        fontWeight="700"
-                        _hover={{
-                            color: "gray.600",
-                            _dark: {
-                                color: "gray.200",
-                            },
-                            textDecor: "underline",
-                        }}
-                    >
-                        Accessibility tools for designers and developers
-                    </Link>
-                    <chakra.p mt={2} color="gray.600" _dark={{ color: "gray.300" }}>
-                        Lorem ipsum dolor sit, amet consectetur adipisicing elit. Tempora
-                        expedita dicta totam aspernatur doloremque. Excepturi iste iusto eos
-                        enim reprehenderit nisi, accusamus delectus nihil quis facere in
-                        modi ratione libero!
-                    </chakra.p>
-                </Box>
-
-                <Flex justifyContent="space-between" alignItems="center" mt={4}>
-                    <Link
-                        color="brand.600"
-                        _dark={{ color: "brand.400" }}
-                        _hover={{ textDecor: "underline" }}
-                    >
-                        Read more
-                    </Link>
-
-                    <Flex alignItems="center">
-                        <Image
-                            mx={4}
-                            w={10}
-                            h={10}
-                            rounded="full"
-                            fit="cover"
-                            display={{ base: "none", sm: "block" }}
-                            src="https://images.unsplash.com/photo-1502980426475-b83966705988?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=40&q=80"
-                            alt="avatar"
-                        />
-                        <Link
-                            color="gray.700"
-                            _dark={{ color: "gray.200" }}
-                            fontWeight="700"
-                            cursor="pointer"
-                        >
-                            Khatab wedaa
-                        </Link>
-                    </Flex>
-                </Flex>
-            </Box>
-        </Flex>
+                <GridItem pl='2' bg='orange.300' area={'name'}>
+                    {post.User?.username}
+                </GridItem>
+                <GridItem pl='2' bg='orange.300' area={'header'}>
+                    {post?.title}
+                </GridItem>
+                <GridItem pl='2' bg='orange.300' area={'delete'}>
+                    {
+                        isAuthorized(post.UserId) &&
+                        <>
+                            <button onClick={() => { setShowEdit(true); }}><AiFillEdit /></button>
+                            <form onSubmit={deletePost} id={post?.id}>
+                                <button ><AiFillDelete /></button>
+                            </form>
+                        </>
+                    }
+                </GridItem>
+                <GridItem pl='2' bg='pink.300' area={'nav'}>
+                    nav
+                </GridItem>
+                <GridItem pl='2' bg='green.300' area={'main'}>
+                    {post?.content}
+                </GridItem>
+                <GridItem pl='2' bg='blue.300' area={'comments'}>
+                    {
+                        post?.comments &&
+                        post.comments.map((comment) => {
+                            return <div key={comment.id}>
+                                <p >{comment.content}</p>
+                                <div >
+                                    {
+                                        isAuthorized(comment.User.id) &&
+                                        <form id={comment.id} onSubmit={deleteComment}>
+                                            <button><AiFillDelete /></button>
+                                        </form>
+                                    }
+                                    <p>{comment?.User?.username}</p>
+                                </div>
+                            </div>;
+                        })
+                    }
+                </GridItem>
+            </Grid>
+        </>
     );
-};
+}
 
+// function PostsCardOld(props) {
 
-// import axios from './../../api/axios';
-// import React, { useEffect, useState } from 'react';
-// import { AiFillDelete, AiFillEdit } from 'react-icons/ai'
-// import EditPost from './EditPost';
-// import { usePosts } from '../../State/PostsContext';
-// import { actions } from '../../State/PostsReducer';
-// import { useAuth } from '../../State/AuthContext';
-
-// function PostsCard(props) {
-//     const { dispatch } = usePosts()
-//     const { userState, isAuthorized } = useAuth()
-//     const { loggedUser } = userState
-
-//     const [post, setPost] = useState(props.post)
-//     const [showEdit, setShowEdit] = useState(false)
-
-//     const getPost = async () => {
-//         const id = props.post.id
-//         const updatedPost = await axios.get(`/post/${id}`, {
-//             headers: {
-//                 Authorization: `Bearer ${loggedUser.access_token}`
-//             }
-//         })
-//         setPost(updatedPost.data)
-//     }
-
-//     const addComment = async (e) => {
-//         e.preventDefault()
-//         const id = e.target.id
-//         const newCmnt = {
-//             content: e.target.comment.value,
-//             UserId: loggedUser.id
-//         }
-//         await axios.post(`/post/${id}/comment`, newCmnt, {
-//             headers: {
-//                 Authorization: `Bearer ${loggedUser.access_token}`
-//             }
-//         })
-//         e.target.comment.value = ''
-//         getPost()
-//     }
-//     const editPost = async (e) => {
-//         e.preventDefault()
-//         const data = {
-//             content: e.target.content.value,
-//             title: e.target.title.value
-//         }
-//         await axios.put(`/post/${e.target.id}`, data, {
-//             headers: {
-//                 Authorization: `Bearer ${loggedUser.access_token}`
-//             }
-//         })
-//             .then(res => {
-//                 e.target.content.value = ''
-//                 e.target.title.value = ''
-//             })
-//             .catch(e => alert(e.response.data))
-//         setShowEdit(false)
-//         getPost()
-//     }
-
-//     const deleteComment = async (e) => {
-//         e.preventDefault()
-//         const id = e.target.id
-//         await axios.delete(`/comment/${id}`, {
-//             headers: {
-//                 Authorization: `Bearer ${loggedUser.access_token}`
-//             }
-//         })
-//         getPost()
-//     }
-
-
-//     const deletePost = async (e) => {
-//         e.preventDefault()
-//         const id = e.target.id
-//         await axios.delete(`/post/${id}`, {
-//             headers: {
-//                 Authorization: `Bearer ${loggedUser.access_token}`
-//             }
-//         })
-//         dispatch({
-//             type: actions.deletePost,
-//             payload: parseInt(id)
-//         })
-//     }
-//     useEffect(() => {
-//         getPost()
-//     }, [])
 //     return (
 //         <>
-//             {showEdit &&
-//                 <EditPost post={post} setShowEdit={setShowEdit} editPost={editPost} />
-//             }
+
 
 //             {
 //                 <div key={post?.id} className=' border shadow-xl flex flex-col border-slate-700 rounded-md h-fit '>
@@ -207,7 +170,7 @@ export default function PostsCard() {
 //                             {
 //                                 isAuthorized(post.UserId) &&
 //                                 <>
-//                                     <button onClick={() => { setShowEdit(true) }}><AiFillEdit /></button>
+//                                     <button onClick={() => { setShowEdit(true); }}><AiFillEdit /></button>
 //                                     <form onSubmit={deletePost} id={post?.id} className='mt-3'>
 //                                         <button className='text-xl'><AiFillDelete className='h-6 w-fit border-2 m-2 rounded-full   hover:text-slate-500' /></button>
 //                                     </form>
@@ -232,7 +195,7 @@ export default function PostsCard() {
 //                                         }
 //                                         <p className='px-2 border-y bg-black text-white border-x rounded-md border-black h-fit'>{comment?.User?.username}</p>
 //                                     </div>
-//                                 </div>
+//                                 </div>;
 //                             })
 //                         }
 //                     </div>

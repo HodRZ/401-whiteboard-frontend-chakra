@@ -7,7 +7,6 @@ import {
   Grid,
   theme,
 } from '@chakra-ui/react';
-import { ColorModeSwitcher } from './ColorModeSwitcher';
 import Hero from './components/main/Hero';
 import Sidebar from './components/main/Sidebar';
 import Post from './components/post/Post';
@@ -19,11 +18,10 @@ function App() {
   const { userState, loading } = useAuth();
   return (
     <ChakraProvider theme={theme}>
+      <Sidebar />
       <Box textAlign="center" fontSize="xl">
         <Grid minH="100vh" p={3}>
-          <ColorModeSwitcher justifySelf="flex-end" />
           <VStack spacing={8}>
-            <Sidebar />
             <Hero />
             <AppDataProvider>
               {(loading) ?
