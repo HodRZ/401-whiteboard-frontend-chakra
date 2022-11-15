@@ -1,29 +1,32 @@
 import { axiosPrivate } from './../../api/axios';
 import React, { useState } from 'react';
-import base64 from 'base-64'
+import base64 from 'base-64';
 import { useAuth } from '../../State/AuthContext';
+import { Box, Button, Flex, Grid, Heading, Input, InputGroup, InputRightElement } from '@chakra-ui/react';
 
 const Auth = (props) => {
-    const [newUser, setNewUser] = useState()
-    const { login } = useAuth()
+    const [newUser, setNewUser] = useState();
+    const { login } = useAuth();
+    const [showPass, setShowPass] = useState(false);
+    const handleClickPass = () => setShowPass(!showPass);
 
     const userForm = () => {
-        setNewUser(!newUser)
-    }
+        setNewUser(!newUser);
+    };
 
     const singup = async (e) => {
-        e.preventDefault()
+        e.preventDefault();
         const newUser = {
             "email": e.target.email.value,
             "password": e.target.password.value,
             "username": e.target.username.value
-        }
+        };
         await axiosPrivate.post(`/signUp`, newUser)
             .then(res => {
-                login(res.data)
+                login(res.data);
             })
-            .catch(e => alert(e.response.data))
-    }
+            .catch(e => alert(e.response.data));
+    };
     const signin = async (e) => {
         e.preventDefault();
         const userData = {
@@ -33,59 +36,112 @@ const Auth = (props) => {
         const encodedData = base64.encode(`${userData.email}:${userData.password}`);
         await axiosPrivate.post(`/signin`, {}, { headers: { Authorization: `Basic ${encodedData}` } })
             .then(res => {
-                login(res.data)
+                login(res.data);
             })
             .catch(e => alert(e.response.data));
-    }
+    };
     return (
-        <div className='font-mono md:my-20 md:mx-32 text-center text-sm md:text-lg'>
-            <div className='flex flex-col items-center w-full'>
-                <h2 className=' py-5 mt-16 px-4 border shadow-lg rounded-lg w-[70%] md:w-full'>Welcome to our Whiteboard!</h2>
-                <div className='flex flex-col md:flex-row gap-4 md:gap-16 m-8 md:m-16'>
-                    <button onClick={userForm} className={`border-b rounded-lg ${(!newUser) ? 'bg-black text-white' : 'bg-white'} shadow-lg border-black py-3 px-8`}>Login</button>
-                    <button onClick={userForm} className={`border-b rounded-lg ${(newUser) ? 'bg-black text-white' : 'bg-white'}  shadow-lg border-black py-3 px-8`}>Join the tribe!</button>
-                </div>
-                {newUser &&
+        <Box
+            p='100'
+            borderColor='primary.300'
+            border="1px"
+            borderRadius='lg'
+        >
+            <Heading
+                p='5'
+            >Welcome to our Whiteboard!</Heading>
+            <Flex
+                mt='10'
+                mb='5'
+                gap='1'
+                fontWeight='bold'
+                justify='center'
+            >
+                <Button onClick={userForm} color='primary.100' bg={`${(!newUser) ? 'secondary.200' : 'primary.200'}`} >Log in</Button>
+                <Button onClick={userForm} color='primary.100' bg={`${(newUser) ? 'action' : 'primary.200'}`}>Join the tribe!</Button>
+            </Flex>
+            {newUser &&
+                <form onSubmit={singup}>
+                    <Grid
+                        h='100%'
+                        gap='1'
+                        color='primary.200'
+                        fontWeight='bold'
+                    >
+                        <Input
+                            pr='4.5rem'
+                            type='text'
+                            placeholder='Username'
+                            required
+                        />
+                        <Input
+                            pr='4.5rem'
+                            type='email'
+                            placeholder='Enter email'
+                            name='email'
+                            required
+                        />
+                        <InputGroup size='md'>
+                            <Input
+                                pr='4.5rem'
+                                type={showPass ? 'text' : 'password'}
+                                placeholder='Enter password'
+                                name='password'
+                                required
+                            />
+                            <InputRightElement width='4.5rem'>
+                                <Button h='1.75rem' size='sm' onClick={handleClickPass}>
+                                    {showPass ? 'Hide' : 'Show'}
+                                </Button>
+                            </InputRightElement>
+                        </InputGroup>
+                        <Button type='submit' color='primary.300' bg='action'>Sign Up</Button>
+                    </Grid>
+                </form>
 
-                    <div className='border shadow-lg md:w-[50%]'>
-                        <form className='w-full text-left flex flex-col gap-7 border p-8 bg-black text-white rounded-lg' onSubmit={singup}>
-                            <div>
-                                <label htmlFor="username">username</label>
-                                <input type="username" required placeholder='username' className='text-black border w-full' name='username' />
-                            </div>
-                            <div>
-                                <label htmlFor="email">email</label>
-                                <input type="email" required placeholder='email' className='border w-full text-black' name='email' />
-                            </div>
-                            <div>
-                                <label htmlFor="password">password</label>
-                                <input type="password" required placeholder='password' className='text-black border w-full' name='password' />
-                            </div>
-                            <button className='border-b-2  border-white shadow-xl hover:bg-action hover:text-purple-200 rounded-xl my-3'>Sign Up</button>
-                        </form>
-                    </div>
-                }
-                {!newUser &&
-                    <div className='border shadow-lg md:w-[50%] '>
-                        <form className='w-full text-left flex flex-col gap-7 border rounded-lg p-8' onSubmit={signin}>
-                            <div>
-                                <label htmlFor="username">username</label>
-                                <input type="username" required placeholder='username' className='border w-full' name='username' />
-                            </div>
-                            <div>
-                                <label htmlFor="email">email</label>
-                                <input type="email" required placeholder='email' className='border w-full' name='email' />
-                            </div>
-                            <div>
-                                <label htmlFor="password">password</label>
-                                <input type="password" required placeholder='password' className='border w-full' name='password' />
-                            </div>
-                            <button className='border-b-2  border-black shadow-xl hover:bg-action hover:text-purple-200 rounded-xl my-3'>Log in</button>
-                        </form>
-                    </div>
-                }
-            </div>
-        </div>
+            }
+            {!newUser &&
+
+                <form onSubmit={signin}>
+                    <Grid
+                        h='100%'
+                        gap='1'
+                        color='primary.200'
+                        fontWeight='bold'
+                    >
+                        <Input
+                            pr='4.5rem'
+                            type='text'
+                            placeholder='Username'
+                            required
+                        />
+                        <Input
+                            pr='4.5rem'
+                            type='email'
+                            placeholder='Enter email'
+                            name='email'
+                            required
+                        />
+                        <InputGroup size='md'>
+                            <Input
+                                pr='4.5rem'
+                                type={showPass ? 'text' : 'password'}
+                                placeholder='Enter password'
+                                name='password'
+                                required
+                            />
+                            <InputRightElement width='4.5rem'>
+                                <Button h='1.75rem' size='sm' onClick={handleClickPass}>
+                                    {showPass ? 'Hide' : 'Show'}
+                                </Button>
+                            </InputRightElement>
+                        </InputGroup>
+                        <Button type='submit' color='primary.100' bg='secondary.200'>Log in</Button>
+                    </Grid>
+                </form>
+
+            }
+        </Box >
     );
 };
 

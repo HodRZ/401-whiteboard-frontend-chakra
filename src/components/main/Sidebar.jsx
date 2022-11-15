@@ -57,7 +57,7 @@ function Sidebar(props) {
                             <Button variant="ghost">Blog</Button>
                             <Button variant="ghost">Company</Button> */}
                             {userState.isLoggedIn &&
-                                <Button variant="ghost" onClick={logout}>
+                                <Button bg='action' color='primary.300' variant="ghost" onClick={logout}>
                                     Logout
                                 </Button>}
                             <ColorModeSwitcher justifySelf="flex-end" />
@@ -94,18 +94,6 @@ function Sidebar(props) {
                                     onClick={mobileNav.onClose}
                                 />
 
-                                {/* <Button w="full" variant="ghost">
-                                    Features
-                                </Button>
-                                <Button w="full" variant="ghost">
-                                    Pricing
-                                </Button>
-                                <Button w="full" variant="ghost">
-                                    Blog
-                                </Button>
-                                <Button w="full" variant="ghost">
-                                    Company
-                                </Button> */}
                                 {userState.isLoggedIn &&
                                     <Button w="full" variant="ghost" onClick={logout}>
                                         Logout

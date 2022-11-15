@@ -37,7 +37,7 @@ function AddPostForm(props) {
                     name='content'
                 />
             </>
-            <Button type='submit' colorScheme='blue'>Post</Button>
+            <Button type='submit' bg='primary.300' color='action'>Post</Button>
         </form>
 
     );
