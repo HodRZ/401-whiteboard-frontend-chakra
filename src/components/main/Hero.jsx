@@ -3,7 +3,10 @@ import { Heading } from '@chakra-ui/react';
 
 function Hero(props) {
     return (
-        <Heading>
+        <Heading
+            mt='20'
+            mb='5'
+        >
             Got Jokes ?
         </Heading>
     );
